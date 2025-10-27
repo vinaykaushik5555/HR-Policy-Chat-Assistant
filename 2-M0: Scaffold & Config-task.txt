@@ -1,0 +1,13 @@
+Create the files/folders shown in the repo layout. Add minimal contents and a README with local run instructions.
+
+Create `.env.example`:
+OPENAI_API_KEY=
+LLM_MODEL_RESPONSE=gpt-4o-mini
+EMBED_MODEL=text-embedding-3-small
+CHROMA_DIR=app/rag/data/index
+TOP_K=5
+MAX_TOKENS_POLICY=400
+MAX_TOKENS_LEAVE=250
+
+Create `config.yaml` with same defaults, overridable by env.
+Create `requirements.txt` including: streamlit, langchain, langgraph, chromadb, openai, tiktoken, pypdf, python-dotenv, pydantic, markdown.

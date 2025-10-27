@@ -1,0 +1,11 @@
+llm:
+  provider: openai
+  model_response: gpt-4o-mini
+  embed_model: text-embedding-ada-002
+  top_k: 5
+  max_tokens_policy: 400
+  max_tokens_leave: 250
+  chroma_dir: app/rag/data/index
+
+# All values can be overridden by environment variables
+# provider: anthropic  # Commented out alternate provider

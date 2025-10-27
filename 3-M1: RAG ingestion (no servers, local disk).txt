@@ -1,0 +1,30 @@
+Implement a tiny RAG pipeline:
+
+app/rag/loader.py
+- load Markdown and PDF files from data/sample_policies
+- chunk to ~700 tokens with 100 overlap
+- attach metadata: policy_id, section, source (filename), effective_date (from frontmatter if present)
+
+app/rag/ingest.py
+- read files from data/sample_policies
+- embed with OpenAI embeddings (model from EMBED_MODEL)
+- upsert into Chroma at CHROMA_DIR (create if missing)
+- CLI usage: `python -m app.rag.ingest`
+
+app/rag/store.py
+- function `search(query: str, k: int) -> list[dict]` using Chroma similarity search
+- return: [{ "text", "source", "section", "score", "policy_id" }]
+- helper `ensure_index()` that checks the index exists (and prints hint if missing)
+
+Seed 3 sample policies in data/sample_policies/*.md:
+- maternity_leave.md
+- casual_leave.md
+- leave_overview.md
+Each with short sections and clear rules, minimal content.
+
+
+Acceptance
+
+python -m app.rag.ingest completes.
+
+search("maternity") returns ≥1 chunk with metadata.

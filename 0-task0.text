@@ -1,0 +1,14 @@
+# Create and activate virtual environment
+python3.11 -m venv .venv
+source .venv/bin/activate
+
+# Upgrade pip
+pip install -U pip
+
+# Install minimal dependencies
+pip install streamlit langchain langgraph chromadb openai tiktoken pypdf python-dotenv pydantic markdown
+
+# Copy and set up environment variables
+cp .env.example .env
+# then edit .env to add your OpenAI API key:
+# OPENAI_API_KEY="your_api_key_here"

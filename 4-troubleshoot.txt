@@ -1,0 +1,182 @@
+0) Preconditions
+
+Target Python: 3.11 (avoid 3.13).
+
+Repo root: hr-assistant-agent/
+
+1) Runtime & Env Setup
+
+Command
+
+python3.11 -m venv .venv && source .venv/bin/activate
+pip install -U pip
+pip install "openai>=1.42.0" "chromadb==0.4.24" "pypdf>=4.2.0" "tiktoken>=0.7.0" "python-dotenv>=1.0.1" "markdown>=3.6"
+
+
+Copilot Chat Prompt
+
+Verify current Python and Chroma versions with a one-liner that prints both.
+
+
+Acceptance
+
+python - <<'PY'
+import sys, chromadb
+print("PY:", sys.version)
+print("Chroma:", chromadb.__version__)
+PY
+# Expect PY 3.11.x and Chroma 0.4.24
+
+2) Environment Variables & Folders
+
+Command
+
+cat > .env <<'ENV'
+OPENAI_API_KEY=REPLACE_WITH_YOUR_KEY
+EMBED_MODEL=text-embedding-3-small
+CHROMA_DIR=app/rag/data/index
+ENV
+
+mkdir -p app/rag/data/sample_policies app/rag/data/index
+
+
+Acceptance
+
+test -f .env && echo OK && ls -la app/rag/data/sample_policies app/rag/data/index
+
+3) Replace RAG Files (binding OpenAI embeddings to the collection)
+
+Copilot Chat Prompt (create/overwrite file)
+
+Create or replace `app/rag/store.py` with a Chroma collection that binds OpenAIEmbeddingFunction
+so `query_texts` works. Use the exact code from our last message’s `store.py`.
+
+
+Copilot Chat Prompt (create/overwrite file)
+
+Create or replace `app/rag/ingest.py` to:
+- enumerate files from `app/rag/data/sample_policies`
+- chunk & upsert with bound embedding function
+- CLI entrypoint `python -m app.rag.ingest`
+Use the exact code from our last message’s `ingest.py`.
+
+
+Copilot Chat Prompt (create/overwrite file)
+
+Create or replace `app/rag/loader.py` with the chunker and file loaders (md/pdf/txt)
+exactly as shared in the last message.
+
+
+Acceptance
+
+python -m pyflakes app/rag/store.py app/rag/ingest.py app/rag/loader.py || true
+
+4) Seed Minimal Policy Files
+
+Copilot Chat Prompt
+
+Create three small markdown files under `app/rag/data/sample_policies/`:
+- maternity_leave.md
+- casual_leave.md
+- leave_overview.md
+Each should contain 2–3 short sections with headings and clear rules.
+
+
+Acceptance
+
+ls -1 app/rag/data/sample_policies
+# Expect three .md files
+
+5) Clean Old Index & Re-Ingest
+
+Command
+
+rm -rf app/rag/data/index
+python -m app.rag.ingest
+
+
+Acceptance
+
+Console output ends with: Ingested N chunks from M files into 'hr_policies'.
+
+Directory exists: app/rag/data/index/
+
+6) Query Test
+
+Command
+
+python - <<'PY'
+from app.rag.store import search
+print(search("maternity", 3))
+PY
+
+
+Acceptance
+
+Outputs a list of dicts with keys: text, source, section, policy_id, score.
+
+No exceptions.
+
+7) Sanity Diagnostics (only if failing)
+
+Copilot Chat Prompt
+
+Generate a Python snippet that checks:
+- env OPENAI_API_KEY is present
+- collection count > 0
+- a query returns results
+Print meaningful messages for each check.
+
+
+Run
+
+python diag.py   # or however Copilot names it
+
+
+Acceptance
+
+All checks pass; otherwise fix the specific failing item per the printed hint.
+
+8) Lock Known-Good Versions (optional but recommended)
+
+Copilot Chat Prompt
+
+Create `requirements.txt` with the exact versions used:
+openai>=1.42.0
+chromadb==0.4.24
+pypdf>=4.2.0
+tiktoken>=0.7.0
+python-dotenv>=1.0.1
+markdown>=3.6
+Add a short section in README on installing these and running ingestion.
+
+
+Acceptance
+
+pip install -r requirements.txt
+
+9) Quick Rollback (if needed)
+
+Command
+
+git checkout -- app/rag/store.py app/rag/ingest.py app/rag/loader.py
+rm -rf app/rag/data/index
+python -m app.rag.ingest
+
+
+Acceptance
+
+Re-ingestion completes; query test passes.
+
+10) Hand-off to M2
+
+Copilot Chat Prompt
+
+Confirm M1 success: run a quick script that calls search("maternity", 3) and prints the number of results.
+If >= 1, proceed to M2 agent wiring.
+
+Notes
+
+Root cause addressed: binding OpenAIEmbeddingFunction to the Chroma collection so query_texts=[...] works reliably.
+
+Python 3.11 + Chroma 0.4.24 pairing avoids known API/ABI issues in newer versions for this MVP.

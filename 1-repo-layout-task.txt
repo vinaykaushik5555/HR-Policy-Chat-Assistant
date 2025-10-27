@@ -1,0 +1,23 @@
+hr-assistant/
+  .env.example
+  requirements.txt                # optional (see list above)
+  config.yaml
+  app/
+    main.py                       # Streamlit entry
+    agent/
+      graph.py
+      prompts.py
+      providers.py
+      guardrails.py
+      policy_tools.py
+      leave_tools.py              # in-process “MCP” functions
+    rag/
+      ingest.py
+      loader.py
+      store.py
+      data/
+        sample_policies/          # .md/.pdf seed
+        index/                    # Chroma db dir
+  tests/
+    smoke_test.md                 # manual steps
+  README.md
